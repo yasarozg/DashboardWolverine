@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using DashboardWolverine.Repositories;
 using DashboardWolverine.Models;
+using System.Text.Json;
 
 namespace DashboardWolverine.Controllers;
 
@@ -8,6 +9,12 @@ namespace DashboardWolverine.Controllers;
 [Route("api/wolverine")]
 public class WolverineController : ControllerBase
 {
+    private static readonly JsonSerializerOptions CamelCaseJsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
+    };
+
     private readonly WolverineRepository _repository;
     private readonly ILogger<WolverineController> _logger;
 
@@ -25,7 +32,7 @@ public class WolverineController : ControllerBase
         try
         {
             var stats = await _repository.GetDashboardStatsAsync();
-            return Ok(stats);
+            return CamelCaseJson(stats);
         }
         catch (Exception ex)
         {
@@ -53,7 +60,7 @@ public class WolverineController : ControllerBase
             var result = await _repository.GetAllDeadLettersAsync(
                 messageType, exceptionType, bodySearch, startDate, endDate, page, pageSize);
             
-            return Ok(new { 
+            return CamelCaseJson(new {
                 count = result.TotalCount,
                 page = page,
                 pageSize = pageSize,
@@ -89,7 +96,7 @@ public class WolverineController : ControllerBase
                 return NotFound(new { error = "Dead letter not found" });
             }
 
-            return Ok(deadLetter);
+            return CamelCaseJson(deadLetter);
         }
         catch (Exception ex)
         {
@@ -115,7 +122,7 @@ public class WolverineController : ControllerBase
                 return NotFound(new { error = "Dead letter not found" });
             }
 
-            return Ok(new { message = "Dead letter updated successfully", replayable = request.Replayable });
+            return CamelCaseJson(new { message = "Dead letter updated successfully", replayable = request.Replayable });
         }
         catch (Exception ex)
         {
@@ -137,7 +144,7 @@ public class WolverineController : ControllerBase
             var deadLetters = request.DeadLetters.Select(dl => (dl.Id, dl.ReceivedAt)).ToList();
             var updated = await _repository.SetMultipleDeadLettersReplayableAsync(deadLetters, request.Replayable);
 
-            return Ok(new { message = $"Updated {updated} dead letters successfully", count = updated, replayable = request.Replayable });
+            return CamelCaseJson(new { message = $"Updated {updated} dead letters successfully", count = updated, replayable = request.Replayable });
         }
         catch (Exception ex)
         {
@@ -163,7 +170,7 @@ public class WolverineController : ControllerBase
                 return NotFound(new { error = "Dead letter not found" });
             }
 
-            return Ok(new { message = "Dead letter deleted successfully" });
+            return CamelCaseJson(new { message = "Dead letter deleted successfully" });
         }
         catch (Exception ex)
         {
@@ -191,7 +198,7 @@ public class WolverineController : ControllerBase
             var result = await _repository.GetAllIncomingEnvelopesAsync(
                 messageType, status, bodySearch, startDate, endDate, page, pageSize);
             
-            return Ok(new { 
+            return CamelCaseJson(new {
                 count = result.TotalCount,
                 page = page,
                 pageSize = pageSize,
@@ -227,7 +234,7 @@ public class WolverineController : ControllerBase
                 return NotFound(new { error = "Incoming envelope not found" });
             }
 
-            return Ok(envelope);
+            return CamelCaseJson(envelope);
         }
         catch (Exception ex)
         {
@@ -253,7 +260,7 @@ public class WolverineController : ControllerBase
                 return NotFound(new { error = "Incoming envelope not found" });
             }
 
-            return Ok(new { message = "Incoming envelope deleted successfully" });
+            return CamelCaseJson(new { message = "Incoming envelope deleted successfully" });
         }
         catch (Exception ex)
         {
@@ -272,7 +279,7 @@ public class WolverineController : ControllerBase
         try
         {
             var nodes = await _repository.GetAllNodesAsync();
-            return Ok(new { count = nodes.Count, data = nodes });
+            return CamelCaseJson(new { count = nodes.Count, data = nodes });
         }
         catch (Exception ex)
         {
@@ -293,7 +300,7 @@ public class WolverineController : ControllerBase
                 return NotFound(new { error = "Node not found" });
             }
 
-            return Ok(node);
+            return CamelCaseJson(node);
         }
         catch (Exception ex)
         {
@@ -314,7 +321,7 @@ public class WolverineController : ControllerBase
                 return NotFound(new { error = "Node not found" });
             }
 
-            return Ok(new { message = "Node deleted successfully" });
+            return CamelCaseJson(new { message = "Node deleted successfully" });
         }
         catch (Exception ex)
         {
@@ -333,7 +340,7 @@ public class WolverineController : ControllerBase
         try
         {
             var assignments = await _repository.GetAllNodeAssignmentsAsync();
-            return Ok(new { count = assignments.Count, data = assignments });
+            return CamelCaseJson(new { count = assignments.Count, data = assignments });
         }
         catch (Exception ex)
         {
@@ -354,7 +361,7 @@ public class WolverineController : ControllerBase
                 return NotFound(new { error = "Node assignment not found" });
             }
 
-            return Ok(assignment);
+            return CamelCaseJson(assignment);
         }
         catch (Exception ex)
         {
@@ -375,7 +382,7 @@ public class WolverineController : ControllerBase
                 return NotFound(new { error = "Node assignment not found" });
             }
 
-            return Ok(new { message = "Node assignment deleted successfully" });
+            return CamelCaseJson(new { message = "Node assignment deleted successfully" });
         }
         catch (Exception ex)
         {
@@ -383,6 +390,9 @@ public class WolverineController : ControllerBase
             return StatusCode(500, new { error = ex.Message });
         }
     }
+
+    private ContentResult CamelCaseJson(object value)
+        => Content(JsonSerializer.Serialize(value, CamelCaseJsonOptions), "application/json");
 
     #endregion
 }

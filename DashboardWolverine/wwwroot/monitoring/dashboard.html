@@ -229,6 +229,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.9375rem;
+            table-layout: fixed;
         }
 
         thead {
@@ -240,6 +241,9 @@
             padding: 1rem 1.25rem;
             text-align: left;
             border-bottom: 1px solid var(--border);
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         th {
@@ -432,9 +436,9 @@
 
         .truncate {
             max-width: 200px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .auto-refresh-indicator {
@@ -2135,7 +2139,7 @@
             html += '</tr></thead><tbody>';
             
             data.forEach(item => {
-                const statusBadge = item.status === 'Scheduled' ? 'badge-warning' : 
+                const statusBadge = item.status === 'Scheduled' ? 'badge-warning' :
                                    item.status === 'Incoming' ? 'badge-info' : 'badge-success';
                 html += `<tr>
                     <td class="truncate" title="${item.messageType}">${item.messageType}</td>
