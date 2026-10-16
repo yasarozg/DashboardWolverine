@@ -12,7 +12,7 @@ public class WolverineDeadLetter
     public string? ExceptionMessage { get; set; }
     public DateTime? SentAt { get; set; }
     public bool? Replayable { get; set; }
-    
+
     /// <summary>
     /// JSON body extracted from byte array using PostgreSQL encode/substring
     /// </summary>
